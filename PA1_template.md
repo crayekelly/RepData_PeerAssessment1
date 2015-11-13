@@ -11,21 +11,24 @@ It is now possible to collect a large amount of data about personal movement usi
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 
-###Note:
-
-- You need to download Activity monitoring data to your working directory. 
-        
-        Dataset: "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
-        
-
-
 ###Loading and preprocessing the data        
         
 
 ```r
 library(knitr)
-activity<-read.csv("activity.csv")
-activity$date<-as.Date(activity$date)
+
+#define URL and destination filename
+        URL<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+        filename<-"activity.csv"
+
+#download and unzip files  
+        temp <- tempfile()
+        download.file(URL,temp)
+        activity <- read.csv(unz(temp, "activity.csv"), stringsAsFactors=TRUE )
+        unlink(temp)
+
+        #activity<-read.csv("activity.csv")
+        activity$date<-as.Date(activity$date)
 ```
 
 
@@ -36,6 +39,22 @@ activity$date<-as.Date(activity$date)
 #histogram of total steps taken each day
         
         library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
         stepsbyday<-summarise(group_by(activity, date), steps=sum(steps, na.rm=TRUE))
                               
         hist(stepsbyday$steps, 
@@ -49,21 +68,21 @@ activity$date<-as.Date(activity$date)
 ```r
 #calculate mean steps taken each day
         mean<-mean(stepsbyday$steps, na.rm=TRUE)
-        print(paste("The mean number of steps is:",mean,"."))
+        print(paste("The mean number of steps is:",mean))
 ```
 
 ```
-## [1] "The mean number of steps is: 9354.22950819672 ."
+## [1] "The mean number of steps is: 9354.22950819672"
 ```
 
 ```r
 #calculate median steps taken each day
         median<-median(stepsbyday$steps, na.rm=TRUE)
-        print(paste("The median number of steps is:", median, "."))
+        print(paste("The median number of steps is:", median))
 ```
 
 ```
-## [1] "The median number of steps is: 10395 ."
+## [1] "The median number of steps is: 10395"
 ```
 
 
@@ -120,7 +139,7 @@ The max interval is 'r maxint'.
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
-All missing (NA) values for 'steps' will be filled in by using the mean for that particular interval. i.e. if interval 3 is missing from 11-10-2010, the NA will be replaced with the mean value for the group of interval 3 across all days (with NAs removed).
+*All missing (NA) values for 'steps' will be filled in by using the mean for that particular interval. i.e. if interval 3 is missing from 11-10-2010, the NA will be replaced with the mean value for the group of interval 3 across all days (with NAs removed).*
 
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
@@ -180,6 +199,10 @@ activity2<-activity %>%
 ###Are there differences in activity patterns between weekdays and weekends?
 
 
+*Yes,it appears there are differences in the patterns of activity between weekdays and weekends. Weekend activity is more level across the intervals, while weekday activity tends to have a large peak in the early intervals.*
+
+
+
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 
@@ -208,4 +231,3 @@ activity2<-activity %>%
 
 ![plot of chunk weekdayplot](figure/weekdayplot-1.png) 
 
-*Yes,it appears there are differences in the patterns of activity between weekdays and weekends. Weekend activity is more level across the intervals, while weekday activity tends to have a large peak in the early intervals.*
