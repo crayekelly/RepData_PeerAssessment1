@@ -21,17 +21,18 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 ###Loading and preprocessing the data        
         
-```{r loadandprocess, echo=TRUE}
+
+```r
 library(knitr)
 activity<-read.csv("activity.csv")
 activity$date<-as.Date(activity$date)
-
 ```
 
 
 ###What is the mean total number of steps taken per day? 
 
-```{r meansteps, echo=TRUE}
+
+```r
 #histogram of total steps taken each day
         
         library(dplyr)
@@ -41,15 +42,28 @@ activity$date<-as.Date(activity$date)
                 col="orange",
                 xlab="Daily Steps",
                 main="Histogram of Daily Step Count")
+```
 
+![plot of chunk meansteps](figure/meansteps-1.png) 
+
+```r
 #calculate mean steps taken each day
         mean<-mean(stepsbyday$steps, na.rm=TRUE)
         print(paste("The mean number of steps is:",mean,"."))
+```
 
+```
+## [1] "The mean number of steps is: 9354.22950819672 ."
+```
+
+```r
 #calculate median steps taken each day
         median<-median(stepsbyday$steps, na.rm=TRUE)
         print(paste("The median number of steps is:", median, "."))
-        
+```
+
+```
+## [1] "The median number of steps is: 10395 ."
 ```
 
 
@@ -60,7 +74,8 @@ The mean steps per day is 'r mean' and the median is 'r median'.
 
 1. Make a time series plot of the 5 minute interval and the average number of steps taken, averaged across all days.
 
-```{r timeseries, echo=TRUE}
+
+```r
         stepsbyinterval<-summarise(group_by(activity, interval), 
                                    meansteps=mean(steps, na.rm=TRUE))
         plot(stepsbyinterval$meansteps~stepsbyinterval$interval, 
@@ -69,16 +84,21 @@ The mean steps per day is 'r mean' and the median is 'r median'.
              ylab = "Steps", 
              xlab = "Interval",
              col = "orange")
-        
 ```
 
+![plot of chunk timeseries](figure/timeseries-1.png) 
+
 2. Which 5 minute interval, on average across all days, contains the maximum number of steps? 
-```{r timeseries2, echo=TRUE}
+
+```r
         maxint<-as.integer(stepsbyinterval[stepsbyinterval$meansteps ==
                                                 max(stepsbyinterval$meansteps),1])
         
         print(paste("The inverval with the most average steps is", maxint))
-        
+```
+
+```
+## [1] "The inverval with the most average steps is 835"
 ```
 The max interval is 'r maxint'.
 
@@ -87,9 +107,14 @@ The max interval is 'r maxint'.
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r missingval, echo=TRUE}
+
+```r
         missingvals<-sum(complete.cases(activity))
         print(paste("There are", missingvals, "missing values."))
+```
+
+```
+## [1] "There are 15264 missing values."
 ```
 
 
@@ -100,15 +125,14 @@ All missing (NA) values for 'steps' will be filled in by using the mean for that
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 
-```{r replacemissingval, echo=TRUE}
+
+```r
 #replace missing values with the mean value for that interval
         
 activity2<-activity %>%
         group_by(interval) %>% 
         mutate_each(funs(replace(., which(is.na(.)),
                                  mean(., na.rm=TRUE))), steps)
-        
-        
 ```
 
 
@@ -118,7 +142,8 @@ activity2<-activity %>%
 
 *Yes, imputing the missing values makes a difference. Due to the large number of missing values the mean and median values converge, and the peak is more defined.* 
 
-```{r newdataset, echo=TRUE}
+
+```r
         #histogram of total steps taken each day
         
         stepsbyday2<-summarise(group_by(activity2, date), steps=sum(steps, na.rm=TRUE))
@@ -127,15 +152,28 @@ activity2<-activity %>%
                 col="orange",
                 xlab="Daily Steps",
                 main="Histogram of Daily Step Count")
+```
 
+![plot of chunk newdataset](figure/newdataset-1.png) 
+
+```r
         #calculate mean steps taken each day
         mean1<-mean(stepsbyday2$steps, na.rm=TRUE)
         print(paste("The new mean is:", mean1))
+```
 
+```
+## [1] "The new mean is: 10766.1886792453"
+```
+
+```r
         #calculate median steps taken each day
         median1<-median(stepsbyday2$steps, na.rm=TRUE)
         print(paste("The new median is:", median1))
-        
+```
+
+```
+## [1] "The new median is: 10766.1886792453"
 ```
 
 
@@ -144,21 +182,21 @@ activity2<-activity %>%
 
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r weekday, echo=TRUE}
+
+```r
         activity2$dayofweek<-weekdays(activity2$date)
         weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
         
         activity2$weekdaycheck <- factor((activity2$dayofweek %in% weekdays1), 
                    levels=c(FALSE, TRUE), labels=c('weekend', 'weekday')) 
-        
 ```
 
 
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
 
-```{r weekdayplot, echo=TRUE}
 
+```r
         stepsbyinterval2<-summarise(group_by(activity2, interval, weekdaycheck),
                                     meansteps2=mean(steps, na.rm=TRUE))
         
@@ -166,8 +204,8 @@ activity2<-activity %>%
         
         ggplot(stepsbyinterval2, aes(interval, meansteps2), color=weekdaycheck) +
                 geom_line() + facet_wrap(~weekdaycheck, ncol=1)
-
-        
 ```
+
+![plot of chunk weekdayplot](figure/weekdayplot-1.png) 
 
 *Yes,it appears there are differences in the patterns of activity between weekdays and weekends. Weekend activity is more level across the intervals, while weekday activity tends to have a large peak in the early intervals.*
